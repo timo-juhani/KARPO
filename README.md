@@ -1,2 +1,3 @@
 # aci_automate
-Repo for ACI automation related Python scripts
+Python script repository for simple Cisco ACI automation use cases.
+Scripts are very much under development at the moment.
