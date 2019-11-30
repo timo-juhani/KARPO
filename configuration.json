@@ -1,0 +1,17 @@
+{ 
+    "tenants": {
+        "susi": {
+            "vrf": "vrf-susi-1",
+            "bd": "bd-susi-1",
+            "ap": "ap-susi-1",
+            "epg": ["epg-susi-1", "epg-susi-2"]
+        },
+
+        "karhu": {
+            "vrf": "vrf-karhu-1",
+            "bd": "bd-karhu-1",
+            "ap": "ap-karhu-1",
+            "epg": ["epg-karhu-1", "epg-karhu-2", "epg-karhu-3"]
+        }
+    }
+}

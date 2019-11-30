@@ -1,6 +1,7 @@
 import requests
 import json
 import urllib3
+import json
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -141,22 +142,25 @@ def createEpg(tenant, app, epg, bd, cookie):
 # EXECUTE TASKS
 
 cookie = login()
-tenants = ["hirvi", "karhu", "janis", "koira"]
 
-for tenant in tenants:
-    print("[!] Create overlay: " + tenant.upper())
-    createTenant(tenant, cookie)
-    app = "ap-" + tenant
-    createApp(tenant, app, cookie)
-    vrf = "vrf-" + tenant
-    createVrf(tenant, vrf, cookie)
-    bd = "bd-" + tenant
-    createBd(tenant, vrf, bd, cookie)
-    for i in range(2):
-        epg = "epg-" + tenant + "-" + str(i)
-        createEpg(tenant, app, epg, bd, cookie)
-    print("[!] Moving to the next overlay")
-    print("\n")
+with open("configuration.json") as configuration:
+    config_data = json.load(configuration)
+    
+    for tenant in config_data["tenants"]:
+        print("[!] Create overlay: " + tenant.upper())
+        createTenant(tenant, cookie)
+        app = config_data["tenants"][tenant]["ap"]
+        createApp(tenant, app, cookie)
+        vrf = config_data["tenants"][tenant]["vrf"]
+        createVrf(tenant, vrf, cookie)
+        bd = config_data["tenants"][tenant]["bd"]
+        createBd(tenant, vrf, bd, cookie)
         
-
-
+        for e in range(len(config_data["tenants"][tenant]["epg"])):
+            epg = config_data["tenants"][tenant]["epg"][e]
+            createEpg(tenant, app, epg, bd, cookie)
+        
+        print("[!] Moving to the next overlay")
+        print("\n")
+        
+    print("[!] Overlay provisioning completed!")
