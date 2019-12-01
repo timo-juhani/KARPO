@@ -13,5 +13,25 @@
             "ap": "ap-karhu-1",
             "epg": ["epg-karhu-1", "epg-karhu-2", "epg-karhu-3"]
         }
+    },
+
+    "filters": {
+        "allow-ssh" : {
+            "filt": "Allow-SSH",
+            "entry": "SSH",
+            "port_lower": "22",
+            "port_upper": "22",
+            "ethertype": "ipv4",
+            "ip_protocol": "tcp"
+        },
+
+        "allow-https" : {
+            "filt": "Allow-HTTPS",
+            "entry": "HTTPS",
+            "port_lower": "443",
+            "port_upper": "443",
+            "ethertype": "ipv4",
+            "ip_protocol": "tcp"
+        }
     }
 }

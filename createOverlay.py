@@ -138,7 +138,41 @@ def createEpg(tenant, app, epg, bd, cookie):
         print("[+] EPG " + epg + " was created.")
     elif r.status_code == 400:
         print("[-] EPG " + epg + " was not created.")
-           
+
+def createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_upper,  cookie):
+    url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
+    header = {"content-type": "application/json"}
+    payload = {  
+                "vzFilter":{  
+                    "attributes": {  
+                        "name": filt,
+                        "status": "created"
+                    },
+                    "children":[  
+                        {  
+                            "vzEntry":{  
+                                "attributes":{  
+                                    "dFromPort": port_lower,
+                                    "dToPort": port_upper,
+                                    "etherT": ethertype,
+                                    "name": entry,
+                                    "prot": ip_protocol,
+                                    "status":"created"
+                                    }
+                                }
+                            }
+                        ]   
+                    }
+                }
+
+    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+
+    if r.status_code == 200:
+        print("[+] Filter " + filt + " was created.")
+    elif r.status_code == 400:
+        print("[-] Filter " + filt + " was not created.")     
+
+
 # EXECUTE TASKS
 
 cookie = login()
@@ -159,6 +193,15 @@ with open("configuration.json") as configuration:
         for e in range(len(config_data["tenants"][tenant]["epg"])):
             epg = config_data["tenants"][tenant]["epg"][e]
             createEpg(tenant, app, epg, bd, cookie)
+
+        for f in config_data["filters"]:
+            filt = config_data["filters"][f]["filt"]
+            entry = config_data["filters"][f]["entry"]
+            ethertype = config_data["filters"][f]["ethertype"]
+            ip_protocol = config_data["filters"][f]["ip_protocol"]
+            port_lower = config_data["filters"][f]["port_lower"]
+            port_upper = config_data["filters"][f]["port_upper"]
+            createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_upper, cookie)
         
         print("[!] Moving to the next overlay")
         print("\n")
