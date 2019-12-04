@@ -4,14 +4,16 @@
             "vrf": "vrf-susi-1",
             "bd": "bd-susi-1",
             "ap": "ap-susi-1",
-            "epg": ["epg-susi-1", "epg-susi-2"]
+            "epg": ["epg-susi-1", "epg-susi-2"],
+            "status": "created"
         },
 
         "karhu": {
             "vrf": "vrf-karhu-1",
             "bd": "bd-karhu-1",
             "ap": "ap-karhu-1",
-            "epg": ["epg-karhu-1", "epg-karhu-2", "epg-karhu-3"]
+            "epg": ["epg-karhu-1", "epg-karhu-2"],
+            "status": "created"
         }
     },
 
@@ -33,5 +35,15 @@
             "ethertype": "ipv4",
             "ip_protocol": "tcp"
         }
+    },
+
+    "contracts": {
+        "allow-web" : {
+            "con_name": "Allow-Web",
+            "scope": "context",
+            "sub_name": "Allow-Web",
+            "filt": ["Allow-SSH", "Allow-HTTPS"]
+        }
+
     }
 }

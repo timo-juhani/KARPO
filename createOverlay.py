@@ -25,14 +25,14 @@ def login():
     cookie = {"APIC-Cookie": auth_token}
     return cookie
 
-def createTenant(tenant, cookie):
+def createTenant(tenant, status, cookie):
     url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
     header = {"content-type": "application/json"}
     payload = {
                 "fvTenant": {
                     "attributes": {
                         "name": tenant,
-                        "status": "created"
+                        "status": status
                         }
                     }
                 }
@@ -172,7 +172,61 @@ def createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_u
     elif r.status_code == 400:
         print("[-] Filter " + filt + " was not created.")     
 
+def createContract(tenant, con_name, scope, sub_name, filt,  cookie):
+    url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
+    header = {"content-type": "application/json"}
+    payload = {  
+                "vzBrCP":
+                {
+                    "attributes":
+                    {
+                        "name":con_name,
+                        "scope":scope,
+                        "status":"created, modified"
+                    },
+                    
+                    "children":[
+                    {
+                        "vzSubj":
+                            {
+                                "attributes":
+                                {
+                                    "name":sub_name,
+                                    "status":"created, modified"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
 
+    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+
+    if r.status_code == 200:
+        print("[+] Contract " + con_name + " was created.")
+    elif r.status_code == 400:
+        print("[-] Contract " + con_name + " was not created.")   
+
+def addFilters(tenant, con_name, sub_name, filt, cookie):
+    url = apic + "/api/node/mo/uni/tn-" + tenant + "/brc-" + con_name + "/subj-" + sub_name + ".json"
+    header = {"content-type": "application/json"}
+    payload = {
+                "vzRsSubjFiltAtt":
+                {
+                    "attributes":{
+                        "tnVzFilterName":filt,
+                        "status":"created,modified"
+                        }
+                }
+            }
+
+    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+
+    if r.status_code == 200:
+        print("[+] Filter " + filt + " was added.")
+    elif r.status_code == 400:
+        print("[-] Filter " + filt + " was not added.")
+    
 # EXECUTE TASKS
 
 cookie = login()
@@ -182,7 +236,8 @@ with open("configuration.json") as configuration:
     
     for tenant in config_data["tenants"]:
         print("[!] Create overlay: " + tenant.upper())
-        createTenant(tenant, cookie)
+        status= config_data["tenants"][tenant]["status"]
+        createTenant(tenant, status, cookie)
         app = config_data["tenants"][tenant]["ap"]
         createApp(tenant, app, cookie)
         vrf = config_data["tenants"][tenant]["vrf"]
@@ -202,6 +257,15 @@ with open("configuration.json") as configuration:
             port_lower = config_data["filters"][f]["port_lower"]
             port_upper = config_data["filters"][f]["port_upper"]
             createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_upper, cookie)
+
+        for contract in config_data["contracts"]:
+            con_name = config_data["contracts"][contract]["con_name"]
+            scope = config_data["contracts"][contract]["scope"]
+            sub_name = config_data["contracts"][contract]["sub_name"]
+            createContract(tenant, con_name, scope, sub_name, f, cookie)
+
+            for f in config_data["contracts"][contract]["filt"]:
+                addFilters(tenant, con_name, sub_name, f, cookie)
         
         print("[!] Moving to the next overlay")
         print("\n")
