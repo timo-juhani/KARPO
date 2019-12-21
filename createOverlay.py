@@ -226,7 +226,45 @@ def addFilters(tenant, con_name, sub_name, filt, cookie):
         print("[+] Filter " + filt + " was added.")
     elif r.status_code == 400:
         print("[-] Filter " + filt + " was not added.")
+
+def addProvidedContract(tenant, app, epg, ctr, cookie):
+    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + "/epg-" + epg + ".json"
+    header = {"content-type": "application/json"}
+    payload = {  
+                "fvRsProv":{
+                    "attributes":{
+                        "tnVzBrCPName":ctr,
+                        "status":"created"
+                        }
+                    }
+                }
     
+    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+
+    if r.status_code == 200:
+        print("[+] Provided contract " + ctr + " was added for " + epg + ".")
+    elif r.status_code == 400:
+        print("[-] Provided contract " + ctr + " was not added for " + epg + ".")
+
+def addConsumedContract(tenant, app, epg, ctr, cookie):
+    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + "/epg-" + epg + ".json"
+    header = {"content-type": "application/json"}
+    payload = {
+                "fvRsCons":{
+                    "attributes":{
+                        "tnVzBrCPName":ctr,
+                        "status":"created"
+                        }
+                    }
+                }
+    
+    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+
+    if r.status_code == 200:
+        print("[+] Consumed contract " + ctr + " was added for " + epg + ".")
+    elif r.status_code == 400:
+        print("[-] Consumed contract " + ctr + " was not added for " + epg + ".")
+
 # EXECUTE TASKS
 
 cookie = login()
@@ -266,7 +304,14 @@ with open("configuration.json") as configuration:
 
             for f in config_data["contracts"][contract]["filt"]:
                 addFilters(tenant, con_name, sub_name, f, cookie)
+
+        prov_epg = config_data["tenants"][tenant]["epg"][0]
+        ctr = config_data["tenants"][tenant]["ctr"]
+        addProvidedContract(tenant, app, prov_epg, ctr, cookie)
         
+        cons_epg = config_data["tenants"][tenant]["epg"][1]
+        addConsumedContract(tenant, app, prov_epg, ctr, cookie)
+
         print("[!] Moving to the next overlay")
         print("\n")
         
