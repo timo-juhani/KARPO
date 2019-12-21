@@ -7,5 +7,4 @@
 
 ## Next steps
 - Please note scripts are very much under development at the moment.
-- createOverlay.py doesn't yet apply the contracts to EPGs
 - createMSOverlay.py needs to be implemented, since the current script only deals with single site setup.
