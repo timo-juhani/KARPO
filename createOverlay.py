@@ -48,47 +48,15 @@ def login(apic, header, configuration):
         return None
 
 
-def createTenant(header, cookie, tenant):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("tenant.j2", tenant, url, cookie, header)
-    check_status_code(r.status_code, f'Tenant {tenant["name"]}')
+class AciObject:
+    def __init__(self, name, type, url):
+        self.name = name
+        self.type = type
+        self.url = url
 
-
-def createApp(header, cookie, tenant, ap):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("app_profile.j2", ap, url, cookie, header)
-    check_status_code(r.status_code, f'AP {ap["name"]}')
-
-
-def createVrf(header, cookie, tenant, vrf):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("vrf.j2", vrf, url, cookie, header)
-    check_status_code(r.status_code, f'VRF {vrf["name"]}')
-
-
-def createBd(header, cookie, tenant, bd):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("bridge_domain.j2", bd, url, cookie, header)
-    check_status_code(r.status_code, f'BD {bd["name"]}')
-
-
-def createEpg(header, cookie, tenant, epg):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
-        "/ap-" + epg["ap"] + "/epg-" + epg["name"] + ".json"
-    r = post_payload("epg.j2", epg, url, cookie, header)
-    check_status_code(r.status_code, f'EPG {epg["name"]}')
-
-
-def createFilter(header, cookie, tenant, filter):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("filter.j2", filter, url, cookie, header)
-    check_status_code(r.status_code, f'Filter {filter["name"]}')
-
-
-def createContract(header, cookie, tenant, contract):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    r = post_payload("contract.j2", contract, url, cookie, header)
-    check_status_code(r.status_code, f'Contract {contract["name"]}')
+    def createObject(self, header, cookie, template, configuration):
+        r = post_payload(template, configuration, self.url, cookie, header)
+        check_status_code(r.status_code, f'{self.type} {self.name} created')
 
 
 def addFilters(header, cookie, tenant, contract, filter_entry):
@@ -100,31 +68,50 @@ def addFilters(header, cookie, tenant, contract, filter_entry):
 
 # EXECUTE TASKS
 
-
 with open("configuration.json") as configuration:
     config_data = json.load(configuration)
     apic = config_data["apic"]
     header = {"content-type": "application/json"}
     cookie = login(apic, header, config_data)
 
-    for tenant in config_data["tenants"]:
-        print("[!] Create overlay: " + tenant["name"].upper())
-        createTenant(header, cookie, tenant)
-        for a in tenant["ap"]:
-            createApp(header, cookie, tenant, a)
-        for v in tenant["vrf"]:
-            createVrf(header, cookie, tenant, v)
-        for b in tenant["bd"]:
-            createBd(header, cookie, tenant, b)
-        for e in tenant["epg"]:
-            createEpg(header, cookie, tenant, e)
-        for f in tenant["filters"]:
-            createFilter(header, cookie, tenant, f)
-        for c in tenant["contracts"]:
-            createContract(header, cookie, tenant, c)
-            for filter_entry in c["filters"]:
-                addFilters(header, cookie, tenant, c, filter_entry)
+    for t in config_data["tenants"]:
+        tenant_url = apic + "/api/node/mo/uni/tn-" + t["name"] + ".json"
+        tenant = AciObject(t["name"], "tenant", tenant_url)
+        tenant.createObject(header, cookie, "tenant.j2", t)
+
+        for a in t["ap"]:
+            ap = AciObject(a["name"], "app_profile", tenant_url)
+            ap.createObject(header, cookie, "app_profile.j2", a)
+
+        for v in t["vrf"]:
+            vrf = AciObject(v["name"], "vrf", tenant_url)
+            vrf.createObject(header, cookie, "vrf.j2", v)
+
+        for b in t["bd"]:
+            bd = AciObject(b["name"], "bridge_domain", tenant_url)
+            bd.createObject(header, cookie, "bridge_domain.j2", b)
+
+        for e in t["epg"]:
+            epg_url = apic + "/api/node/mo/uni/tn-" + \
+                t["name"] + "/ap-" + e["ap"] + ".json"
+            epg = AciObject(e["name"], "epg", epg_url)
+            epg.createObject(header, cookie, "epg.j2", e)
+
+        for f in t["filters"]:
+            filt = AciObject(f["name"], "filter", tenant_url)
+            filt.createObject(header, cookie, "filter.j2", f)
+
+        for c in t["contracts"]:
+            ctr = AciObject(f["name"], "contract", tenant_url)
+            ctr.createObject(header, cookie, "contract.j2", c)
+            for fe in c["filters"]:
+                fentry_url = apic + "/api/node/mo/uni/tn-" + t["name"] + \
+                    "/brc-" + c["name"] + "/subj-" + \
+                    c["sub_name"] + ".json"
+                fentry = AciObject(fe["name"], "filter_entry", fentry_url)
+                fentry.createObject(header, cookie, "filter_entry.j2", fe)
 
         print("[!] Moving to the next overlay")
         print("\n")
+
     print("[!] Overlay provisioning completed!")

@@ -4,7 +4,7 @@
     "pwd": "ciscopsdt",
     "tenants": [
         {
-            "name": "susi",
+            "name": "susi1",
             "vrf": [
                 {
                     "name": "vrf-1",
