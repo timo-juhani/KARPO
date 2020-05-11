@@ -59,13 +59,6 @@ class AciObject:
         check_status_code(r.status_code, f'{self.type} {self.name} created')
 
 
-def addFilters(header, cookie, tenant, contract, filter_entry):
-    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
-        "/brc-" + contract["name"] + "/subj-" + contract["sub_name"] + ".json"
-    r = post_payload("filter_entry.j2", filter_entry, url, cookie, header)
-    check_status_code(r.status_code, f'Filter entry {filter_entry["name"]}')
-
-
 # EXECUTE TASKS
 
 with open("configuration.json") as configuration:
