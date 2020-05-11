@@ -1,50 +1,167 @@
-{ 
-    "tenants": {
-        "susi": {
-            "vrf": "susi-1",
-            "bd": "susi-1",
-            "ap": "susi-1",
-            "epg": ["susi-1", "susi-2"],
-            "ctr": "allow-web",
+{
+    "apic": "https://sandboxapicdc.cisco.com",
+    "user": "admin",
+    "pwd": "ciscopsdt",
+    "tenants": [
+        {
+            "name": "susi",
+            "vrf": [
+                {
+                    "name": "vrf-1",
+                    "status": "created"
+                }
+            ],
+            "bd": [
+                {
+                    "name": "susi-100",
+                    "vrf": "vrf-1",
+                    "status": "created",
+                    "vrf_status": "modified"
+                }
+            ],
+            "ap": [
+                {
+                    "name": "susi-1",
+                    "status": "created"
+                },
+                {
+                    "name": "susi-2",
+                    "status": "created"
+                }
+            ],
+            "epg": [
+                {
+                    "name": "susi-100",
+                    "bd": "susi-100",
+                    "status": "created",
+                    "bd_status": "modified",
+                    "ap": "susi-1"
+                },
+                {
+                    "name": "susi-101",
+                    "bd": "susi-101",
+                    "status": "created",
+                    "bd_status": "modified",
+                    "ap": "susi-1"
+                }
+            ],
+            "filters": [
+                {
+                    "name": "Allow-SSH",
+                    "entry": "SSH",
+                    "port_low": "22",
+                    "port_up": "22",
+                    "ethertype": "ipv4",
+                    "ip_protocol": "tcp",
+                    "status": "created"
+                },
+                {
+                    "name": "Allow-HTTPS",
+                    "entry": "HTTPS",
+                    "port_low": "443",
+                    "port_up": "443",
+                    "ethertype": "ipv4",
+                    "ip_protocol": "tcp",
+                    "status": "created"
+                }
+            ],
+            "contracts": [
+                {
+                    "name": "Allow-Web",
+                    "scope": "context",
+                    "sub_name": "Allow-Web",
+                    "filters": [
+                        {
+                            "name": "Allow-SSH",
+                            "status": "created"
+                        },
+                        {
+                            "name": "Allow-HTTPS",
+                            "status": "created"
+                        }
+                    ],
+                    "status": "created"
+                }
+            ],
             "status": "created"
         },
-
-        "karhu": {
-            "vrf": "karhu-1",
-            "bd": "karhu-1",
-            "ap": "karhu-1",
-            "epg": ["karhu-1", "karhu-2"],
-            "ctr": "allow-web",
+        {
+            "name": "karhu",
+            "vrf": [
+                {
+                    "name": "vrf-1",
+                    "status": "created"
+                }
+            ],
+            "bd": [
+                {
+                    "name": "karhu-100",
+                    "vrf": "vrf-1",
+                    "status": "created",
+                    "vrf_status": "modified"
+                }
+            ],
+            "ap": [
+                {
+                    "name": "karhu-1",
+                    "status": "created"
+                }
+            ],
+            "epg": [
+                {
+                    "name": "karhu-100",
+                    "bd": "karhu-100",
+                    "status": "created",
+                    "bd_status": "modified",
+                    "ap": "karhu-1"
+                },
+                {
+                    "name": "karhu-101",
+                    "bd": "karhu-101",
+                    "status": "created",
+                    "bd_status": "modified",
+                    "ap": "karhu-1"
+                }
+            ],
+            "filters": [
+                {
+                    "name": "Allow-SSH",
+                    "entry": "SSH",
+                    "port_low": "22",
+                    "port_up": "22",
+                    "ethertype": "ipv4",
+                    "ip_protocol": "tcp",
+                    "status": "created"
+                },
+                {
+                    "name": "Allow-HTTPS",
+                    "entry": "HTTPS",
+                    "port_low": "443",
+                    "port_up": "443",
+                    "ethertype": "ipv4",
+                    "ip_protocol": "tcp",
+                    "status": "created"
+                }
+            ],
+            "contracts": [
+                {
+                    "name": "Allow-Web",
+                    "scope": "context",
+                    "sub_name": "Allow-Web",
+                    "filters": [
+                        {
+                            "name": "Allow-SSH",
+                            "status": "created"
+                        },
+                        {
+                            "name": "Allow-HTTPS",
+                            "status": "created"
+                        }
+                    ],
+                    "status": "created"
+                }
+            ],
             "status": "created"
         }
-    },
-
-    "filters": {
-        "allow-ssh" : {
-            "filt": "Allow-SSH",
-            "entry": "SSH",
-            "port_lower": "22",
-            "port_upper": "22",
-            "ethertype": "ipv4",
-            "ip_protocol": "tcp"
-        },
-
-        "allow-https" : {
-            "filt": "Allow-HTTPS",
-            "entry": "HTTPS",
-            "port_lower": "443",
-            "port_upper": "443",
-            "ethertype": "ipv4",
-            "ip_protocol": "tcp"
-        }
-    },
-
-    "contracts": {
-        "allow-web" : {
-            "con_name": "Allow-Web",
-            "scope": "context",
-            "sub_name": "Allow-Web",
-            "filt": ["Allow-SSH", "Allow-HTTPS"]
-        }
-    }
+    ]
 }

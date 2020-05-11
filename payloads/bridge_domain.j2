@@ -1,0 +1,18 @@
+{
+    "fvBD": {
+        "attributes": {
+            "name": "{{ name }}",
+            "status": "{{ status }}"
+        },
+        "children": [
+            {
+                "fvRsCtx": {
+                    "attributes": {
+                        "tnFvCtxName": "{{ vrf }}",
+                        "status": "{{ vrf_status }}"
+                    }
+                }
+            }
+        ]
+    }
+}

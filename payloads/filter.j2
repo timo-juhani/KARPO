@@ -1,0 +1,22 @@
+{
+    "vzFilter": {
+        "attributes": {
+            "name": "{{ name }}",
+            "status": "{{ status }}"
+        },
+        "children": [
+            {
+                "vzEntry": {
+                    "attributes": {
+                        "dFromPort": "{{ port_low }}",
+                        "dToPort": "{{ port_up }}",
+                        "etherT": "{{ ethertype }}",
+                        "name": "{{ entry }}",
+                        "prot": "{{ ip_protocol }}",
+                        "status": "{{ status }}"
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -1,319 +1,140 @@
 import requests
 import json
 import urllib3
-import json
+import jinja2
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# LOGIN CREDENTIALS
+# HELP FUNCTIONS
 
-apic = "https://sandboxapicdc.cisco.com"
-user = "admin"
-pwd = "ciscopsdt"
 
-# DEFINE FUNCTIONS
+def render_payload(template, configuration):
+    payloadLoader = jinja2.FileSystemLoader(searchpath="payloads/")
+    templateEnv = jinja2.Environment(loader=payloadLoader)
+    t = template
+    template = templateEnv.get_template(t)
+    return json.loads(template.render(configuration))
 
-def login():
+
+def check_status_code(status_code, object):
+    if status_code == 200:
+        print("[+] Object " + object + " was created.")
+    elif status_code == 400:
+        print("[-] Object " + object + " was not created.")
+
+# ACI FUNCTIONS
+
+
+def login(apic, header, configuration):
     url = apic + "/api/aaaLogin.json"
-    payload = {"aaaUser":{"attributes":{"name": user,"pwd": pwd}}}
-    header = {"content-type": "application/json"}
-                    
-    r = requests.post(url, data=json.dumps(payload), headers=header, verify=False)
-    r_json = r.json()
-
-    auth_token = r_json["imdata"][0]["aaaLogin"]["attributes"]["token"]
-    cookie = {"APIC-Cookie": auth_token}
-    return cookie
-
-def createTenant(tenant, status, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvTenant": {
-                    "attributes": {
-                        "name": tenant,
-                        "status": status
-                        }
-                    }
-                }
-
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+    payload = render_payload("login.j2", configuration)
+    r = requests.post(url, data=json.dumps(payload),
+                      headers=header, verify=False)
 
     if r.status_code == 200:
-        print("[+] tenant tn-" + tenant + " was created.")
-    elif r.status_code == 400:
-        print("[-] tenant tn-" + tenant + " was not created.")
+        print("[+] Login succesful.")
+        r_json = r.json()
+        auth_token = r_json["imdata"][0]["aaaLogin"]["attributes"]["token"]
+        cookie = {"APIC-Cookie": auth_token}
+        return cookie
+    else:
+        print("[-] Login unsuccesful")
+        return None
 
-def createApp(tenant, app, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvAp": {
-                    "attributes": {
-                        "name": app,
-                        "status": "created"
-                        }
-                    }
-                }
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
 
-    if r.status_code == 200:
-        print("[+] aplication profile " + app + " was created.")
-    elif r.status_code == 400:
-        print("[-] aplication profile " + app + " was not created.")
+def createTenant(header, cookie, tenant):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("tenant.j2", tenant)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'Tenant {tenant["name"]}')
 
-def createVrf(tenant, vrf, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ctx-" + vrf + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvCtx": {
-                    "attributes": {
-                        "name": vrf,
-                        "status": "created"
-                        }
-                    }
-                }
 
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+def createApp(header, cookie, tenant, ap):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("app_profile.j2", ap)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'AP {ap["name"]}')
 
-    if r.status_code == 200:
-        print("[+] VRF " + vrf + " was created.")
-    elif r.status_code == 400:
-        print("[-] VRF profile " + vrf + " was not created.")
 
-def createBd(tenant, vrf, bd, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/BD-" + bd + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvBD": {
-                    "attributes": {
-                        "name":bd,
-                        "status":"created"
-                        },
-                    "children": [
-                        {
-                            "fvRsCtx": {
-                                "attributes": {
-                                    "tnFvCtxName": vrf,
-                                    "status": "created,modified"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
+def createVrf(header, cookie, tenant, vrf):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("vrf.j2", vrf)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'VRF {vrf["name"]}')
 
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
 
-    if r.status_code == 200:
-        print("[+] Bridge domain " + bd + " was created.")
-    elif r.status_code == 400:
-        print("[-] Bridge domain " + bd + " was not created.")
+def createBd(header, cookie, tenant, bd):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("bridge_domain.j2", bd)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'BD {bd["name"]}')
 
-def createEpg(tenant, app, epg, bd, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + "/epg-" + epg + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvAEPg": {
-                    "attributes": {
-                        "name":epg,
-                        "status":"created"
-                        },
-                    "children": [
-                        {
-                            "fvRsBd": {
-                                "attributes": {
-                                    "tnFvBDName": bd,
-                                    "status":"created,modified"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
 
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+def createEpg(header, cookie, tenant, epg):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
+        "/ap-" + epg["ap"] + "/epg-" + epg["name"] + ".json"
+    payload = render_payload("epg.j2", epg)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'EPG {epg["name"]}')
 
-    if r.status_code == 200:
-        print("[+] EPG " + epg + " was created.")
-    elif r.status_code == 400:
-        print("[-] EPG " + epg + " was not created.")
 
-def createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_upper,  cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
-    header = {"content-type": "application/json"}
-    payload = {  
-                "vzFilter":{  
-                    "attributes": {  
-                        "name": filt,
-                        "status": "created"
-                    },
-                    "children":[  
-                        {  
-                            "vzEntry":{  
-                                "attributes":{  
-                                    "dFromPort": port_lower,
-                                    "dToPort": port_upper,
-                                    "etherT": ethertype,
-                                    "name": entry,
-                                    "prot": ip_protocol,
-                                    "status":"created"
-                                    }
-                                }
-                            }
-                        ]   
-                    }
-                }
+def createFilter(header, cookie, tenant, filter):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("filter.j2", filter)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'Filter {filter["name"]}')
 
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
 
-    if r.status_code == 200:
-        print("[+] Filter " + filt + " was created.")
-    elif r.status_code == 400:
-        print("[-] Filter " + filt + " was not created.")     
+def createContract(header, cookie, tenant, contract):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
+    payload = render_payload("contract.j2", contract)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'Contract {contract["name"]}')
 
-def createContract(tenant, con_name, scope, sub_name, filt,  cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + ".json"
-    header = {"content-type": "application/json"}
-    payload = {  
-                "vzBrCP":
-                {
-                    "attributes":
-                    {
-                        "name":con_name,
-                        "scope":scope,
-                        "status":"created, modified"
-                    },
-                    
-                    "children":[
-                    {
-                        "vzSubj":
-                            {
-                                "attributes":
-                                {
-                                    "name":sub_name,
-                                    "status":"created, modified"
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
 
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
+def addFilters(header, cookie, tenant, contract, filter_entry):
+    url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
+        "/brc-" + contract["name"] + "/subj-" + contract["sub_name"] + ".json"
+    payload = render_payload("filter_entry.j2", filter_entry)
+    r = requests.post(url, data=json.dumps(payload),
+                      cookies=cookie, headers=header, verify=False)
+    check_status_code(r.status_code, f'Filter entry {filter_entry["name"]}')
 
-    if r.status_code == 200:
-        print("[+] Contract " + con_name + " was created.")
-    elif r.status_code == 400:
-        print("[-] Contract " + con_name + " was not created.")   
-
-def addFilters(tenant, con_name, sub_name, filt, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/brc-" + con_name + "/subj-" + sub_name + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "vzRsSubjFiltAtt":
-                {
-                    "attributes":{
-                        "tnVzFilterName":filt,
-                        "status":"created,modified"
-                        }
-                }
-            }
-
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
-
-    if r.status_code == 200:
-        print("[+] Filter " + filt + " was added.")
-    elif r.status_code == 400:
-        print("[-] Filter " + filt + " was not added.")
-
-def addProvidedContract(tenant, app, epg, ctr, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + "/epg-" + epg + ".json"
-    header = {"content-type": "application/json"}
-    payload = {  
-                "fvRsProv":{
-                    "attributes":{
-                        "tnVzBrCPName":ctr,
-                        "status":"created"
-                        }
-                    }
-                }
-    
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
-
-    if r.status_code == 200:
-        print("[+] Provided contract " + ctr + " was added for " + epg + ".")
-    elif r.status_code == 400:
-        print("[-] Provided contract " + ctr + " was not added for " + epg + ".")
-
-def addConsumedContract(tenant, app, epg, ctr, cookie):
-    url = apic + "/api/node/mo/uni/tn-" + tenant + "/ap-" + app + "/epg-" + epg + ".json"
-    header = {"content-type": "application/json"}
-    payload = {
-                "fvRsCons":{
-                    "attributes":{
-                        "tnVzBrCPName":ctr,
-                        "status":"created"
-                        }
-                    }
-                }
-    
-    r = requests.post(url, data=json.dumps(payload), cookies=cookie, headers=header, verify=False)
-
-    if r.status_code == 200:
-        print("[+] Consumed contract " + ctr + " was added for " + epg + ".")
-    elif r.status_code == 400:
-        print("[-] Consumed contract " + ctr + " was not added for " + epg + ".")
 
 # EXECUTE TASKS
 
-cookie = login()
 
 with open("configuration.json") as configuration:
     config_data = json.load(configuration)
-    
+    apic = config_data["apic"]
+    header = {"content-type": "application/json"}
+    cookie = login(apic, header, config_data)
+
     for tenant in config_data["tenants"]:
-        print("[!] Create overlay: " + tenant.upper())
-        status= config_data["tenants"][tenant]["status"]
-        createTenant(tenant, status, cookie)
-        app = config_data["tenants"][tenant]["ap"]
-        createApp(tenant, app, cookie)
-        vrf = config_data["tenants"][tenant]["vrf"]
-        createVrf(tenant, vrf, cookie)
-        bd = config_data["tenants"][tenant]["bd"]
-        createBd(tenant, vrf, bd, cookie)
-        
-        for e in range(len(config_data["tenants"][tenant]["epg"])):
-            epg = config_data["tenants"][tenant]["epg"][e]
-            createEpg(tenant, app, epg, bd, cookie)
-
-        for f in config_data["filters"]:
-            filt = config_data["filters"][f]["filt"]
-            entry = config_data["filters"][f]["entry"]
-            ethertype = config_data["filters"][f]["ethertype"]
-            ip_protocol = config_data["filters"][f]["ip_protocol"]
-            port_lower = config_data["filters"][f]["port_lower"]
-            port_upper = config_data["filters"][f]["port_upper"]
-            createFilter(tenant, filt, entry, ethertype, ip_protocol, port_lower, port_upper, cookie)
-
-        for contract in config_data["contracts"]:
-            con_name = config_data["contracts"][contract]["con_name"]
-            scope = config_data["contracts"][contract]["scope"]
-            sub_name = config_data["contracts"][contract]["sub_name"]
-            createContract(tenant, con_name, scope, sub_name, f, cookie)
-
-            for f in config_data["contracts"][contract]["filt"]:
-                addFilters(tenant, con_name, sub_name, f, cookie)
-
-        prov_epg = config_data["tenants"][tenant]["epg"][0]
-        ctr = config_data["tenants"][tenant]["ctr"]
-        addProvidedContract(tenant, app, prov_epg, ctr, cookie)
-        
-        cons_epg = config_data["tenants"][tenant]["epg"][1]
-        addConsumedContract(tenant, app, prov_epg, ctr, cookie)
+        print("[!] Create overlay: " + tenant["name"].upper())
+        createTenant(header, cookie, tenant)
+        for a in tenant["ap"]:
+            createApp(header, cookie, tenant, a)
+        for v in tenant["vrf"]:
+            createVrf(header, cookie, tenant, v)
+        for b in tenant["bd"]:
+            createBd(header, cookie, tenant, b)
+        for e in tenant["epg"]:
+            createEpg(header, cookie, tenant, e)
+        for f in tenant["filters"]:
+            createFilter(header, cookie, tenant, f)
+        for c in tenant["contracts"]:
+            createContract(header, cookie, tenant, c)
+            for filter_entry in c["filters"]:
+                addFilters(header, cookie, tenant, c, filter_entry)
 
         print("[!] Moving to the next overlay")
         print("\n")
-        
     print("[!] Overlay provisioning completed!")
-    
