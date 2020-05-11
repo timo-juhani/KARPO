@@ -7,7 +7,7 @@
 - payloads folder contain the Jinja2 templates that are used to render payloads for the REST calls that are sent to APIC.  
 
 Example
-[!image](example.jpg)
+![image](example.jpg)
 
 
 ## Next steps
