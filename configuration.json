@@ -13,7 +13,7 @@
             ],
             "bd": [
                 {
-                    "name": "susi-100",
+                    "name": "susi-101",
                     "vrf": "vrf-1",
                     "status": "created",
                     "vrf_status": "modified"

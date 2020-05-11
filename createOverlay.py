@@ -16,6 +16,12 @@ def render_payload(template, configuration):
     return json.loads(template.render(configuration))
 
 
+def post_payload(template, configuration, url, cookie, header):
+    payload = render_payload(template, configuration)
+    return requests.post(url, data=json.dumps(payload),
+                         cookies=cookie, headers=header, verify=False)
+
+
 def check_status_code(status_code, object):
     if status_code == 200:
         print("[+] Object " + object + " was created.")
@@ -44,67 +50,51 @@ def login(apic, header, configuration):
 
 def createTenant(header, cookie, tenant):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("tenant.j2", tenant)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("tenant.j2", tenant, url, cookie, header)
     check_status_code(r.status_code, f'Tenant {tenant["name"]}')
 
 
 def createApp(header, cookie, tenant, ap):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("app_profile.j2", ap)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("app_profile.j2", ap, url, cookie, header)
     check_status_code(r.status_code, f'AP {ap["name"]}')
 
 
 def createVrf(header, cookie, tenant, vrf):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("vrf.j2", vrf)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("vrf.j2", vrf, url, cookie, header)
     check_status_code(r.status_code, f'VRF {vrf["name"]}')
 
 
 def createBd(header, cookie, tenant, bd):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("bridge_domain.j2", bd)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("bridge_domain.j2", bd, url, cookie, header)
     check_status_code(r.status_code, f'BD {bd["name"]}')
 
 
 def createEpg(header, cookie, tenant, epg):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
         "/ap-" + epg["ap"] + "/epg-" + epg["name"] + ".json"
-    payload = render_payload("epg.j2", epg)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("epg.j2", epg, url, cookie, header)
     check_status_code(r.status_code, f'EPG {epg["name"]}')
 
 
 def createFilter(header, cookie, tenant, filter):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("filter.j2", filter)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("filter.j2", filter, url, cookie, header)
     check_status_code(r.status_code, f'Filter {filter["name"]}')
 
 
 def createContract(header, cookie, tenant, contract):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + ".json"
-    payload = render_payload("contract.j2", contract)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("contract.j2", contract, url, cookie, header)
     check_status_code(r.status_code, f'Contract {contract["name"]}')
 
 
 def addFilters(header, cookie, tenant, contract, filter_entry):
     url = apic + "/api/node/mo/uni/tn-" + tenant["name"] + \
         "/brc-" + contract["name"] + "/subj-" + contract["sub_name"] + ".json"
-    payload = render_payload("filter_entry.j2", filter_entry)
-    r = requests.post(url, data=json.dumps(payload),
-                      cookies=cookie, headers=header, verify=False)
+    r = post_payload("filter_entry.j2", filter_entry, url, cookie, header)
     check_status_code(r.status_code, f'Filter entry {filter_entry["name"]}')
 
 
