@@ -4,7 +4,7 @@
     "pwd": "ciscopsdt",
     "tenants": [
         {
-            "name": "susi1",
+            "name": "susi",
             "vrf": [
                 {
                     "name": "vrf-1",
@@ -35,14 +35,44 @@
                     "bd": "susi-100",
                     "status": "created",
                     "bd_status": "modified",
-                    "ap": "susi-1"
+                    "ap": "susi-1",
+                    "prov_cont": [
+                        {
+                            "name": "Allow-Web",
+                            "status": "created"
+                        }
+                    ],
+                    "cons_cont": [],
+                    "static_bindings": [
+                        {
+                            "encap": "vlan-100",
+                            "mode": "untagged",
+                            "path": "topology/pod-1/paths-101/pathep-[eth1/1]",
+                            "status": "created"
+                        }
+                    ]
                 },
                 {
                     "name": "susi-101",
                     "bd": "susi-101",
                     "status": "created",
                     "bd_status": "modified",
-                    "ap": "susi-1"
+                    "ap": "susi-1",
+                    "prov_cont": [],
+                    "cons_cont": [
+                        {
+                            "name": "Allow-Web",
+                            "status": "created"
+                        }
+                    ],
+                    "static_bindings": [
+                        {
+                            "encap": "vlan-101",
+                            "mode": "untagged",
+                            "path": "topology/pod-1/paths-101/pathep-[eth1/2]",
+                            "status": "created"
+                        }
+                    ]
                 }
             ],
             "filters": [
@@ -113,14 +143,30 @@
                     "bd": "karhu-100",
                     "status": "created",
                     "bd_status": "modified",
-                    "ap": "karhu-1"
+                    "ap": "karhu-1",
+                    "prov_cont": [
+                        {
+                            "name": "Allow-Web",
+                            "status": "created"
+                        }
+                    ],
+                    "cons_cont": [],
+                    "static_bindings": []
                 },
                 {
                     "name": "karhu-101",
                     "bd": "karhu-101",
                     "status": "created",
                     "bd_status": "modified",
-                    "ap": "karhu-1"
+                    "ap": "karhu-1",
+                    "prov_cont": [],
+                    "cons_cont": [
+                        {
+                            "name": "Allow-Web",
+                            "status": "created"
+                        }
+                    ],
+                    "static_bindings": []
                 }
             ],
             "filters": [

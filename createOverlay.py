@@ -56,10 +56,10 @@ class AciObject:
 
     def createObject(self, header, cookie, template, configuration):
         r = post_payload(template, configuration, self.url, cookie, header)
-        check_status_code(r.status_code, f'{self.type} {self.name} created')
-
+        check_status_code(r.status_code, f'{self.type} {self.name}')
 
 # EXECUTE TASKS
+
 
 with open("configuration.json") as configuration:
     config_data = json.load(configuration)
@@ -84,12 +84,6 @@ with open("configuration.json") as configuration:
             bd = AciObject(b["name"], "bridge_domain", tenant_url)
             bd.createObject(header, cookie, "bridge_domain.j2", b)
 
-        for e in t["epg"]:
-            epg_url = apic + "/api/node/mo/uni/tn-" + \
-                t["name"] + "/ap-" + e["ap"] + ".json"
-            epg = AciObject(e["name"], "epg", epg_url)
-            epg.createObject(header, cookie, "epg.j2", e)
-
         for f in t["filters"]:
             filt = AciObject(f["name"], "filter", tenant_url)
             filt.createObject(header, cookie, "filter.j2", f)
@@ -103,6 +97,27 @@ with open("configuration.json") as configuration:
                     c["sub_name"] + ".json"
                 fentry = AciObject(fe["name"], "filter_entry", fentry_url)
                 fentry.createObject(header, cookie, "filter_entry.j2", fe)
+
+        for e in t["epg"]:
+            ap_url = apic + "/api/node/mo/uni/tn-" + \
+                t["name"] + "/ap-" + e["ap"] + ".json"
+            epg_url = apic + "/api/node/mo/uni/tn-" + \
+                t["name"] + "/ap-" + e["ap"] + \
+                "/epg-" + e["name"] + ".json"
+            epg = AciObject(e["name"], "epg", ap_url)
+            epg.createObject(header, cookie, "epg.j2", e)
+
+            for p in e["prov_cont"]:
+                pc = AciObject(p["name"], "provided_contract", epg_url)
+                pc.createObject(header, cookie, "provided_contract.j2", p)
+
+            for c in e["cons_cont"]:
+                cc = AciObject(p["name"], "consumed_contract", epg_url)
+                cc.createObject(header, cookie, "consumed_contract.j2", c)
+
+            for s in e["static_bindings"]:
+                sb = AciObject(s["encap"], "static_binding", epg_url)
+                sb.createObject(header, cookie, "static_binding.j2", s)
 
         print("[!] Moving to the next overlay")
         print("\n")
