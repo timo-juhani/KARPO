@@ -1,18 +1,14 @@
 # Configure ACI with Python!
 
 ## Functionality
-- Python script repository for simple Cisco ACI automation tasks.
-- At this point concentrates on provisioning and "pushing" Tenants configurations.
-- createOverlay.py is the main script at the moment. It creates a new overlay network and policies attached to that based on configuration database maintained in configuration.json.
-- payloads folder contain the Jinja2 templates that are used to render payloads for the REST calls that are sent to APIC.
-- all payloads in the folder are supported in the code and POST'ed by default.
+This is a repository contains Python scripts that are used to automate ACI configuration tasks. The point of this work is to treat ACI impletation as an infrastructure-as-code project. At the createOverlay.py pushes complete tenant configuration to APIC based on the configuration variables recorded in .json. Since the script consumes the native ACI REST API I'm keeping the payload templates in a folder where they can be fetched and rendered using the configuration data. I'm currently developing this repo quite actively which means improvements, but also changing approaches as I learn more about what works and what doesn't. 
 
 ## Example
 
 ![image](example.jpg)
 
 
-## Next steps
+## Roadmap features
 - Add fabric access policies
 - Think about using per tenant configuration files
 - Create MACD plays for tenants
