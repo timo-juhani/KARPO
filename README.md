@@ -13,5 +13,6 @@
 
 
 ## Next steps
-- Please note this repository is very much under development - sporadically. 
 - Add fabric access policies
+- Think about using per tenant configuration files
+- Create MACD plays for tenants
