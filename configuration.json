@@ -209,5 +209,20 @@
             ],
             "status": "created"
         }
-    ]
+    ],
+    "tmpl": {
+        "ap": "app_profile.j2",
+        "bd": "bridge_domain.j2",
+        "cc": "consumed_contract.j2",
+        "co": "contract.j2",
+        "ed": "epg_domain.j2",
+        "eg": "epg.j2",
+        "fe": "filter_entry.j2",
+        "fr": "filter.j2",
+        "ln": "login.j2",
+        "pc": "provided_contract.j2",
+        "sb": "static_binding.j2",
+        "tt": "tenant.j2",
+        "vf": "vrf.j2"
+    }
 }
