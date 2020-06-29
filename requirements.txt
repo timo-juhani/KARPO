@@ -1,0 +1,5 @@
+jsonschema
+requests
+openpyxl
+jinja2
+sdtables
