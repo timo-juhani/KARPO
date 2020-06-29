@@ -1,4 +1,4 @@
-# Configure ACI with Python!
+# Konfigure ACI with REST, Python and Objects
 
 ## Functionality
 This repository contains Python scripts that are used to automate ACI configuration tasks. The point of this work is to treat ACI implementation as an infrastructure-as-code project using minimalistic set of open source tools.
