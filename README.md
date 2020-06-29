@@ -1,5 +1,8 @@
 # Konfigure ACI with REST, Python and Objects
 
+![image1](karpo.jpg)
+Source: <https://www.hs.fi/fingerpori/car-2000006234678.html>
+
 ## Functionality
 This repository contains Python scripts that are used to automate ACI configuration tasks. The point of this work is to treat ACI implementation as an infrastructure-as-code project using minimalistic set of open source tools.
 
