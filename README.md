@@ -7,4 +7,4 @@ conf_overlay.py pushes a complete tenant configuration to APIC based on the conf
 
 ## Example
 
-![image](example.jpg)
+![image2](example.png)
